@@ -25,7 +25,7 @@ const mintData = {
   p: "n20",
   op: "mint",
   tick,
-  amt: 1000n * 10n ** 8n,
+  amt: 62n * 5n ** 8n,
 };
 
 export async function deployPowToken(wallet: Wallet) {

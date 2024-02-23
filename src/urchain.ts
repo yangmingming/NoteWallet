@@ -3,6 +3,9 @@ import axios from "axios";
 
 import type { IBroadcastResult, IFees, IToken, IUtxo } from "./types";
 
+const MaxRetries = 1000
+const RetryDelay = 5000
+
 export class Urchain {
   private _httpClient;
   constructor(host: string, apiKey = "1234567890") {
@@ -38,32 +41,55 @@ export class Urchain {
     }
   }
 
-  _get(command, params) {
-    // Create query with given parameters, if applicable
-    params = params || {};
+  async _get(command, params, maxRetries = MaxRetries, retryDelay = RetryDelay) {
+    let retries = 0;
+    while (retries < maxRetries) {
+        try {
+            // 创建具有给定参数的查询，如果适用
+            params = params || {};
+            const options = {
+                params,
+            };
+            const response = await this._httpClient.get(command, options);
+            return this._parseResponse(response);
+        } catch (error) {
+            retries++;
+            if (retries === maxRetries) {
+                // 如果达到最大重试次数，抛出异常
+                throw error;
+            }
+            // 重试时打印消息
+            console.log(`Error occurred, retrying... Retry attempt: ${retries}`);
+            // 睡眠指定的延迟时间
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+    }
+}
 
-    const options = {
-      params,
-    };
-
-    return this._httpClient
-      .get(command, options)
-      .then(this._parseResponse)
-      .catch(this._parseError);
+async _post(command, data, maxRetries = MaxRetries, retryDelay = RetryDelay) {
+  let retries = 0;
+  while (retries < maxRetries) {
+      try {
+          const options = {
+              headers: {
+                  "Content-Type": "application/json",
+              },
+          };
+          const response = await this._httpClient.post(command, data, options);
+          return this._parseResponse(response);
+      } catch (error) {
+          retries++;
+          if (retries === maxRetries) {
+              // 如果达到最大重试次数，抛出异常
+              throw error;
+          }
+          // 重试时打印消息
+          console.log(`Error occurred, retrying... Retry attempt: ${retries}`);
+          // 睡眠指定的延迟时间
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
   }
-
-  _post(command, data) {
-    const options = {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
-    return this._httpClient
-      .post(command, data, options)
-      .then(this._parseResponse)
-      .catch(this._parseError);
-  }
+}
 
   async health(): Promise<string> {
     return await this._get("health", {});
