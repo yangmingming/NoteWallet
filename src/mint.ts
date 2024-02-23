@@ -75,7 +75,9 @@ export async function mintPowToken(wallet: Wallet) {
       feeRate,
     );
     const txHash256 = hash256(tx.txHex);
-    console.log("checking", txHash256, locktime);
+    if (locktime % 1000 == 0 ){
+      console.log("checking", txHash256, locktime);
+    }
     if (txHash256.startsWith(deployData.bitwork)) {
       dataMap.mint.tx = tx.txHex;
       const verifyResult = offlineVerify(powJson, dataMap, "mint");

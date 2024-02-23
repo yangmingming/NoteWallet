@@ -162,16 +162,19 @@ export class CommandLineWallet {
             console.log("No wallet selected");
             return;
           }
-          const result = await mintPowToken(this.currentWallet);
-          if (result?.success) {
-            console.log(
-              "Succeeded:",
-              interpolate(this.currentWallet.explorer!.tx, {
-                txId: result.txId,
-              }),
-            );
-          } else {
-            console.log(result);
+          for (let i = 0; i < 10000; i++) {
+            console.log(`begin mint ${i} token`)
+            const result = await mintPowToken(this.currentWallet);
+            if (result?.success) {
+              console.log(
+                "Succeeded:",
+                interpolate(this.currentWallet.explorer!.tx, {
+                  txId: result.txId,
+                }),
+              );
+            } else {
+              console.log(result);
+            }
           }
         },
       )
